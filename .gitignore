@@ -1,0 +1,33 @@
+# macOS & Windows System Metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+Desktop.ini
+
+# Logic Pro Temporary & Recreated Caches (keeps repo fast & conflict-free)
+*.logicx/**/Freeze Files/
+*.logicx/**/Freeze Files.nosync/
+*.logicx/**/Undo Data.nosync/
+*.logicx/**/Autosave/
+
+# Final Cut Pro Temporary Render & Optical Flow Caches (regenerated locally by FCP)
+*.fcpbundle/**/Render Files/
+*.fcpbundle/**/Transcoded Media/High Quality Media/
+*.fcpbundle/**/Analysis Files/
+*.fcpbundle/**/__Temp/
+*.fcpbundle/**/*.fcplock
+*.fcpbundle/**/CurrentVersion.fcpevent.bak
+
+# DaVinci Resolve / Premiere Pro / Pro Tools / Ableton Caches
+CacheClip/
+.gallery/
+Adobe Premiere Pro Auto-Save/
+Adobe Premiere Pro Preview Files/
+Peak Files/
+WaveCache.wfm
+Ableton Project Info/
+Backup/
