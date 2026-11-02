@@ -61,3 +61,9 @@
 *.tar.gz filter=lfs diff=lfs merge=lfs -text
 *.MTS filter=lfs diff=lfs merge=lfs -text
 *.M2TS filter=lfs diff=lfs merge=lfs -text
+*.INSP filter=lfs diff=lfs merge=lfs -text
+*.insv filter=lfs diff=lfs merge=lfs -text
+*.INSV filter=lfs diff=lfs merge=lfs -text
+*.lrv filter=lfs diff=lfs merge=lfs -text
+*.LRV filter=lfs diff=lfs merge=lfs -text
+*.insp filter=lfs diff=lfs merge=lfs -text
