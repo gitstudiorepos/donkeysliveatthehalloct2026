@@ -1,0 +1,137 @@
+{
+    "entries": [
+        {
+            "footage_id": "VID_20261012_183604_00_001.insv+30+3840x3840+987770439",
+            "last_modified_time": "2026.11.14 09:01:39",
+            "last_saved_media_id": "/Volumes/SD Card/DCIM/Camera01/VID_20261012_183604_00_001.insv",
+            "media_instances": [
+                {
+                    "is_cloud": false,
+                    "media_id": "/Volumes/SD Card/DCIM/Camera01/VID_20261012_183604_00_001.insv",
+                    "project_dir": "/Users/robingodbolt/Documents/Insta360/Studio/FootageProject/ac5cc274aa1869b30417c0c9642f9015",
+                    "source_paths": [
+                        "/Volumes/SD Card/DCIM/Camera01/VID_20261012_183604_00_001.insv"
+                    ]
+                },
+                {
+                    "is_cloud": false,
+                    "media_id": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261012_183604_00_001.insv",
+                    "project_dir": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/instaEdits/e89f819227b8d33856faa6dd6aea14a1",
+                    "source_paths": [
+                        "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261012_183604_00_001.insv"
+                    ]
+                }
+            ],
+            "shared": true,
+            "shared_deep_track_project_path": "/Users/robingodbolt/Documents/Insta360/Studio/FootageProject/ac5cc274aa1869b30417c0c9642f9015"
+        },
+        {
+            "footage_id": "VID_20261016_190212_00_002.insv+30+3840x3840+374208919",
+            "last_modified_time": "2026.11.14 09:14:58",
+            "last_saved_media_id": "/Volumes/SD Card/DCIM/Camera01/VID_20261016_190212_00_002.insv",
+            "media_instances": [
+                {
+                    "is_cloud": false,
+                    "media_id": "/Volumes/SD Card/DCIM/Camera01/VID_20261016_190212_00_002.insv",
+                    "project_dir": "/Users/robingodbolt/Documents/Insta360/Studio/FootageProject/dcb679d9613d5f5c2661d800b7b7a13a",
+                    "source_paths": [
+                        "/Volumes/SD Card/DCIM/Camera01/VID_20261016_190212_00_002.insv"
+                    ]
+                },
+                {
+                    "is_cloud": false,
+                    "media_id": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261016_190212_00_002.insv",
+                    "project_dir": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/instaEdits/688b38a484c8b938e5ab22fc69e33bfb",
+                    "source_paths": [
+                        "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261016_190212_00_002.insv"
+                    ]
+                }
+            ],
+            "shared": true,
+            "shared_deep_track_project_path": "/Users/robingodbolt/Documents/Insta360/Studio/FootageProject/dcb679d9613d5f5c2661d800b7b7a13a"
+        },
+        {
+            "footage_id": "VID_20261017_183835_00_005.insv+30+3840x3840+22966260432",
+            "last_modified_time": "2026.11.14 09:14:58",
+            "last_saved_media_id": "/Volumes/SD Card/DCIM/Camera01/VID_20261017_183835_00_005.insv",
+            "media_instances": [
+                {
+                    "is_cloud": false,
+                    "media_id": "/Volumes/SD Card/DCIM/Camera01/VID_20261017_183835_00_005.insv",
+                    "project_dir": "/Users/robingodbolt/Documents/Insta360/Studio/FootageProject/a662ef4773ab9b83b2b7a586c9e1995a",
+                    "source_paths": [
+                        "/Volumes/SD Card/DCIM/Camera01/VID_20261017_183835_00_005.insv"
+                    ]
+                },
+                {
+                    "is_cloud": false,
+                    "media_id": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_183835_00_005.insv",
+                    "project_dir": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/instaEdits/bcbe0d884198f7ce8d0c4432ab59f0ae",
+                    "source_paths": [
+                        "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_183835_00_005.insv"
+                    ]
+                }
+            ],
+            "shared": true,
+            "shared_deep_track_project_path": "/Users/robingodbolt/Documents/Insta360/Studio/FootageProject/a662ef4773ab9b83b2b7a586c9e1995a"
+        },
+        {
+            "footage_id": "VID_20261017_171229_00_003.insv+2",
+            "last_modified_time": "2026.11.14 09:14:58",
+            "last_saved_media_id": "/Volumes/SD Card/DCIM/Camera01/VID_20261017_171229_00_003.insvVID_003_004.insv",
+            "media_instances": [
+                {
+                    "is_cloud": false,
+                    "media_id": "/Volumes/SD Card/DCIM/Camera01/VID_20261017_171229_00_003.insvVID_003_004.insv",
+                    "project_dir": "/Users/robingodbolt/Documents/Insta360/Studio/FootageProject/59ff65deaf25b5a15fa9b34a6c52e17a",
+                    "source_paths": [
+                        "/Volumes/SD Card/DCIM/Camera01/VID_20261017_171229_00_003.insv",
+                        "/Volumes/SD Card/DCIM/Camera01/VID_20261017_174229_00_004.insv"
+                    ]
+                },
+                {
+                    "is_cloud": false,
+                    "media_id": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_171229_00_003.insvVID_003_004.insv",
+                    "project_dir": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/instaEdits/b62da7ea43b9ebd4538c011051f616db",
+                    "source_paths": [
+                        "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_171229_00_003.insv",
+                        "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_174229_00_004.insv"
+                    ]
+                }
+            ],
+            "shared": true,
+            "shared_deep_track_project_path": "/Users/robingodbolt/Documents/Insta360/Studio/FootageProject/59ff65deaf25b5a15fa9b34a6c52e17a"
+        },
+        {
+            "footage_id": "VID_20261017_190952_00_006.insv+4",
+            "last_modified_time": "2026.11.14 09:14:58",
+            "last_saved_media_id": "/Volumes/SD Card/DCIM/Camera01/VID_20261017_190952_00_006.insvVID_006_009.insv",
+            "media_instances": [
+                {
+                    "is_cloud": false,
+                    "media_id": "/Volumes/SD Card/DCIM/Camera01/VID_20261017_190952_00_006.insvVID_006_009.insv",
+                    "project_dir": "/Users/robingodbolt/Documents/Insta360/Studio/FootageProject/46f192caa052dc9445508904679b2fde",
+                    "source_paths": [
+                        "/Volumes/SD Card/DCIM/Camera01/VID_20261017_190952_00_006.insv",
+                        "/Volumes/SD Card/DCIM/Camera01/VID_20261017_193952_00_007.insv",
+                        "/Volumes/SD Card/DCIM/Camera01/VID_20261017_200950_00_008.insv",
+                        "/Volumes/SD Card/DCIM/Camera01/VID_20261017_203948_00_009.insv"
+                    ]
+                },
+                {
+                    "is_cloud": false,
+                    "media_id": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_190952_00_006.insvVID_006_009.insv",
+                    "project_dir": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/instaEdits/64896c24eb6d4b6d7bfaaa86b73a114a",
+                    "source_paths": [
+                        "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_190952_00_006.insv",
+                        "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_193952_00_007.insv",
+                        "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_200950_00_008.insv",
+                        "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_203948_00_009.insv"
+                    ]
+                }
+            ],
+            "shared": true,
+            "shared_deep_track_project_path": "/Users/robingodbolt/Documents/Insta360/Studio/FootageProject/46f192caa052dc9445508904679b2fde"
+        }
+    ]
+}

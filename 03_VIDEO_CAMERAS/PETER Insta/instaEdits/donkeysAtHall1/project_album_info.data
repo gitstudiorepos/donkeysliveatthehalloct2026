@@ -1,0 +1,86 @@
+{
+    "album_tree": {
+        "nodes": [
+            {
+                "media_card_uuid": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_190952_00_006.insvVID_006_009.insv",
+                "name": "VID_006_009.insv",
+                "node_uuid": "2fc7b18e-5506-466c-979b-dbe95c21087b",
+                "parent_uuid": "",
+                "type": "Footage"
+            },
+            {
+                "media_card_uuid": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261016_190212_00_002.insv",
+                "name": "VID_002.insv",
+                "node_uuid": "f1411c5e-c2af-4ebe-bc94-44fd23310008",
+                "parent_uuid": "",
+                "type": "Footage"
+            },
+            {
+                "media_card_uuid": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_183835_00_005.insv",
+                "name": "VID_005.insv",
+                "node_uuid": "3575d7f9-2696-404e-bbc1-6d2ec4a63cb0",
+                "parent_uuid": "",
+                "type": "Footage"
+            },
+            {
+                "media_card_uuid": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_171229_00_003.insvVID_003_004.insv",
+                "name": "VID_003_004.insv",
+                "node_uuid": "8c1ee28e-d57f-4ed0-b38b-2ef9bfd7b1e7",
+                "parent_uuid": "",
+                "type": "Footage"
+            }
+        ],
+        "root_uuids": [
+            "f1411c5e-c2af-4ebe-bc94-44fd23310008",
+            "3575d7f9-2696-404e-bbc1-6d2ec4a63cb0",
+            "8c1ee28e-d57f-4ed0-b38b-2ef9bfd7b1e7",
+            "2fc7b18e-5506-466c-979b-dbe95c21087b"
+        ],
+        "version": 1
+    },
+    "media_card_snapshots": {
+        "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261016_190212_00_002.insv": {
+            "create_time": "2026-10-16T19:02:12",
+            "display_name": "VID_002.insv",
+            "is_dng_group": false,
+            "is_photo_group": false,
+            "remark_name": "",
+            "source": "local",
+            "uuid": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261016_190212_00_002.insv"
+        },
+        "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_171229_00_003.insvVID_003_004.insv": {
+            "create_time": "2026-10-17T17:12:29",
+            "display_name": "VID_003_004.insv",
+            "is_dng_group": false,
+            "is_photo_group": false,
+            "remark_name": "",
+            "source": "local",
+            "uuid": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_171229_00_003.insvVID_003_004.insv"
+        },
+        "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_183835_00_005.insv": {
+            "create_time": "2026-10-17T18:38:35",
+            "display_name": "VID_005.insv",
+            "is_dng_group": false,
+            "is_photo_group": false,
+            "remark_name": "",
+            "source": "local",
+            "uuid": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_183835_00_005.insv"
+        },
+        "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_190952_00_006.insvVID_006_009.insv": {
+            "create_time": "2026-10-17T19:09:52",
+            "display_name": "VID_006_009.insv",
+            "is_dng_group": false,
+            "is_photo_group": false,
+            "remark_name": "",
+            "source": "local",
+            "uuid": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_190952_00_006.insvVID_006_009.insv"
+        }
+    },
+    "tab_media_uuids": [
+        "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261016_190212_00_002.insv",
+        "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_190952_00_006.insvVID_006_009.insv",
+        "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_171229_00_003.insvVID_003_004.insv",
+        "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261017_183835_00_005.insv"
+    ],
+    "version": 1
+}

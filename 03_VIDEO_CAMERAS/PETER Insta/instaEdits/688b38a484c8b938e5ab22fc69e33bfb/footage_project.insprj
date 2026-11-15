@@ -1,0 +1,319 @@
+{
+    "id": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261016_190212_00_002.insv",
+    "projects": [
+        {
+            "clip": {
+                "aspect_ratio_info": {
+                    "currentAspectRatio": "8",
+                    "current_aspect_ratio": 8,
+                    "supportAspectRatios": null,
+                    "support_aspect_ratios": [
+                        1,
+                        3,
+                        8,
+                        6,
+                        7,
+                        5
+                    ]
+                },
+                "asteroidPitchOffset": 0,
+                "audio_setting": {
+                    "audioDetached": false,
+                    "currentDenoiseType": 1,
+                    "currentFadeIn": 0,
+                    "currentFadeOut": 0,
+                    "currentMixingWeight": 50,
+                    "currentTracksDelay": -2147483648,
+                    "currentVolume": 100,
+                    "defaultTracksDelay": -2147483648,
+                    "enableDenoise": false,
+                    "enableMixing": true,
+                    "maxFadeIn": 300,
+                    "maxFadeOut": 300,
+                    "preDetachVolume": 100,
+                    "supportAudio": true,
+                    "supportDenoise": true,
+                    "supportDenoiseTypes": [
+                        1,
+                        2
+                    ],
+                    "supportMixing": false
+                },
+                "baseViewAutoApplied": false,
+                "camera_movement": {
+                    "bottom_by_category": [
+                    ],
+                    "camera_movement_models": [
+                    ],
+                    "distance": 0.6,
+                    "fov": 1.3089969389957472,
+                    "pitch_offset": 0,
+                    "roll_offset": 0,
+                    "view_category_filter": 1,
+                    "yaw_offset": 0
+                },
+                "camera_transform": {
+                    "distance": 0.95,
+                    "eulers": {
+                        "pitch": {
+                            "type": 0,
+                            "value": 0
+                        },
+                        "roll": {
+                            "type": 0,
+                            "value": 0
+                        },
+                        "yaw": {
+                            "type": 0,
+                            "value": 0
+                        }
+                    },
+                    "fov": {
+                        "type": 0,
+                        "value": 0.881984960780334
+                    }
+                },
+                "dashboard_setting": {
+                    "dashboardDataId": "",
+                    "dashboardDataType": 0,
+                    "dashboardSourceType": "TypeNoneData",
+                    "dashboardStyle": "",
+                    "enableDashboard": true,
+                    "supportDashboard": true
+                },
+                "deep_track": {
+                    "cache_path": "",
+                    "deep_track_list": [
+                    ],
+                    "original_clip_id": "",
+                    "save_path": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/instaEdits/688b38a484c8b938e5ab22fc69e33bfb/577a87bb-8ae0-4628-a25b-ded2b7b402ee"
+                },
+                "default_factor": 1,
+                "dewarp_setting": {
+                    "aspectRatio": 0,
+                    "fov_distance_range": {
+                        "is_max_x": true,
+                        "is_min_x": true,
+                        "max_distance": 1.7999999523162842,
+                        "max_fov": 178,
+                        "min_distance": 0,
+                        "min_fov": 1
+                    },
+                    "removeDistortion": false
+                },
+                "effect_filter": {
+                    "externfilterId": "",
+                    "externfilterName": "",
+                    "externfilterOpacity": 70,
+                    "externfilterResourcePath": ""
+                },
+                "enable_user_keyframe": true,
+                "flat_logo_watermark": {
+                    "clipAspectRatio": 8,
+                    "enableFlatLogoWatermark": false,
+                    "flatLogoWatermarkTransparency": 100,
+                    "logoWatermarkLocationType": 0,
+                    "selectedLogoWatermarkPath": ""
+                },
+                "fps": 29.97002997002997,
+                "has_set_play_rate_manually": false,
+                "hdrPreviewEnabled": false,
+                "hdrPreviewUserToggled": false,
+                "head_track": {
+                    "distance": 0.6,
+                    "fov": 1.3089969389957472,
+                    "head_track_list": [
+                    ],
+                    "pitch_offset": 0,
+                    "roll_offset": 0,
+                    "yaw_offset": 0
+                },
+                "highlight_data": false,
+                "id": "577a87bb-8ae0-4628-a25b-ded2b7b402ee",
+                "inAsteroidMode": false,
+                "key_frame_track": {
+                },
+                "lastTrimEditTime": 0,
+                "leftTrim": 0,
+                "legacy_camera_movement": false,
+                "logo_watermark": {
+                    "enableLogoWatermark": false,
+                    "logoWatermarkCornerRadius": 0,
+                    "logoWatermarkFeather": 0,
+                    "logoWatermarkLocationType": 0,
+                    "logoWatermarkRotate": 0,
+                    "logoWatermarkSize": 30,
+                    "selectedLogoWatermarkPath": ""
+                },
+                "media_process": {
+                    "colorAdjustAutoadjust": 0,
+                    "colorAdjustBlackpoint": 0,
+                    "colorAdjustBrightness": 0,
+                    "colorAdjustBrilliance": 0,
+                    "colorAdjustCommonMax": 100,
+                    "colorAdjustCommonMin": -100,
+                    "colorAdjustContrast": 0,
+                    "colorAdjustDefinition": 0,
+                    "colorAdjustDefinitionMin": 0,
+                    "colorAdjustExposure": 0,
+                    "colorAdjustHighlights": 0,
+                    "colorAdjustSaturation": 0,
+                    "colorAdjustShadows": 0,
+                    "colorAdjustTint": 0,
+                    "colorAdjustVibrance": 0,
+                    "colorAdjustWarmth": 0,
+                    "colorPlusStrength": 30,
+                    "colorPlusStrengthMax": 100,
+                    "colorPlusStrengthMin": 0,
+                    "enableAe": true,
+                    "enableBeautyMode": false,
+                    "enableColorAdjust": false,
+                    "enableColorPlus": false,
+                    "enableHorizontalCorrect": false,
+                    "enableLocalToneMapping": false,
+                    "enableLut": false,
+                    "enableMotionBlur": false,
+                    "enableMultiFrameDenoise": true,
+                    "enablePureShot": false,
+                    "enableSingleDenoise": false,
+                    "enableTimeLogo": false,
+                    "enableUnderWaterCorrect": false,
+                    "horizontalCorrectAngle": 0,
+                    "horizontalCorrectDefaultAngle": 0,
+                    "localToneMappingStrength": 30,
+                    "localToneMappingStrengthMax": 100,
+                    "localToneMappingStrengthMin": 0,
+                    "motionBlurEdited": false,
+                    "motionBlurStrength": 50,
+                    "motionBlurThreshold": 85,
+                    "supportAe": true,
+                    "supportColorAdjust": true,
+                    "supportColorPlus": true,
+                    "supportHorizontalCorrect": false,
+                    "supportLocalToneMapping": true,
+                    "supportLut": false,
+                    "supportMotionBlur": true,
+                    "supportPureShot": false,
+                    "supportSingleDenoise": false,
+                    "supportUnderWaterCorrect": true,
+                    "timeLogoFormat": 0,
+                    "timeLogoTransparency": 100,
+                    "underWaterStrength": 100,
+                    "underWaterStrengthMax": 100,
+                    "underWaterStrengthMin": 0,
+                    "underWaterStyle": 0
+                },
+                "name": "VID_002.insv",
+                "online": false,
+                "original_camera_transform": {
+                    "distance": 0.95,
+                    "eulers": {
+                        "pitch": {
+                            "type": 0,
+                            "value": 0
+                        },
+                        "roll": {
+                            "type": 0,
+                            "value": 0
+                        },
+                        "yaw": {
+                            "type": 0,
+                            "value": 0
+                        }
+                    },
+                    "fov": {
+                        "type": 0,
+                        "value": 0.881984960780334
+                    }
+                },
+                "panoAnimationPresetId": -1,
+                "play_rate_track": {
+                },
+                "popupApplyDefaultCameraTransformTips": true,
+                "ratio": 8,
+                "resourceId": "",
+                "rightTrim": 0,
+                "roughTrimmed": false,
+                "sourceFrames": 679,
+                "source_left_trim": 0,
+                "source_right_trim": 0,
+                "source_total_frames": 679,
+                "srcId": "",
+                "stab_setting": {
+                    "enableDirectionalLock": false,
+                    "enableFpv": false,
+                    "enableImmerrsionStab": false,
+                    "enablePanoFpv": false,
+                    "enableStab": true,
+                    "modifiable": true,
+                    "stabLevel": 0,
+                    "supportBoostStabLevel": false,
+                    "supportDirectionalLock": true,
+                    "supportFpv": false,
+                    "supportHighStabLevel": false,
+                    "supportPanoFpv": true,
+                    "supportStab": true
+                },
+                "startFrame": 0,
+                "state": 0,
+                "stitching_optimization": {
+                    "enableAIStitching": true,
+                    "enableDynamicStitching": false,
+                    "enableImageFusionStitching": true,
+                    "enableOpticalFlowStitching": false,
+                    "ignoreDynamicStitching": false,
+                    "ignoreImageFusionStitching": false,
+                    "ignoreOpticalFlowStitching": false,
+                    "optimizedOffset": "",
+                    "supportAIStitching": true,
+                    "supportDynamicStitching": true,
+                    "supportImageFusionStitching": true,
+                    "supportOpticalFlowStitching": true
+                },
+                "stitching_setting": {
+                    "cameraAccessory": 0,
+                    "customStitchingValue": 0,
+                    "customStitchingValueMax": 7,
+                    "enableColdShoe": false,
+                    "enableCoolingShell": false,
+                    "propellerGuardStatus": 0,
+                    "supportCameraAccessory": [
+                        0,
+                        42,
+                        43,
+                        40,
+                        11,
+                        12
+                    ],
+                    "supportColdShoe": false,
+                    "supportCoolingShell": false,
+                    "supportCustomStitching": true,
+                    "supportPropellerGuard": false,
+                    "supportStitching": true
+                },
+                "subtype": 1,
+                "supplementFrameType": "SupplementFrameTypeNormal",
+                "supplement_frame_type": 0,
+                "time_watermark": {
+                    "enableTimeWatermark": false,
+                    "timeWatermarkFormat": 1,
+                    "timeWatermarkTransparency": 100
+                },
+                "type": 1,
+                "url": "/Volumes/PeteSSD/donkeys/donkeysliveatthehalloct2026/03_VIDEO_CAMERAS/PETER Insta/Camera01/VID_20261016_190212_00_002.insv",
+                "userRotateDegree": 0,
+                "viewType": 0
+            },
+            "createTime": "2026.11.14 09:01:39",
+            "id": "c6d5014f-eae6-4c0e-940f-84cb0913b97b",
+            "modifiedTime": "2026.11.14 09:01:39",
+            "name": "Clip1",
+            "roughcut": {
+                "leftTrim": 0,
+                "rightTrim": 0,
+                "totalFrames": 679
+            }
+        }
+    ],
+    "selectedId": "c6d5014f-eae6-4c0e-940f-84cb0913b97b"
+}
