@@ -24,11 +24,15 @@ From the repository root (`donkeysliveatthehalloct2026/`):
 
 # Or run non-interactively (for AI agents / unattended overnight runs):
 ./sync-large-files.sh --yes
+
+# Optional: upload 2 large files in parallel (~2x overseas throughput when SSD free space permits; default is 1):
+./sync-large-files.sh --parallel 2 --yes
 ```
 
 **What you see in Window 1:**
-- Overall summary of drive free space, the Phase 1 small-files batch, and the numbered smallest-to-largest Phase 2 queue.
-- Per-file `[1/4] Staging` → `[2/4] Committing` → `[3/4] Uploading` (displays **Git LFS's live `Uploading LFS objects: XX% ... | XX MB/s` progress line**) → `[4/4] Verifying remote & pruning local LFS cache`.
+- Overall summary of drive free space, parallel stream count (default `1`), the Phase 1 small-files batch, and the numbered smallest-to-largest Phase 2 queue.
+- Per-file / per-batch `[1/4] Staging` → `[2/4] Committing` → `[3/4] Uploading` (displays **Git LFS's live `Uploading LFS objects: XX% ... | XX MB/s` progress line**, automatically using HTTP/1.1 via `GODEBUG=http2client=0` for ~50% higher per-stream speed) → `[4/4] Verifying remote & pruning local LFS cache`.
+- If `--parallel 2` is used and free SSD space ever gets too tight for a pair, the script automatically throttles back to `1` file so `.git/lfs/objects/` never fills the drive.
 - Automatic `caffeinate -i` on macOS so your Mac will not sleep during multi-hour uploads.
 
 ---

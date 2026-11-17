@@ -9,12 +9,12 @@
 # What it does:
 #   1. Asks for your current upload speed in MB/s (e.g. read off the Git LFS
 #      upload line in Window 1 or Activity Monitor).
-#   2. Reads live byte-level progress of the currently uploading file from
+#   2. Reads live byte-level progress of the currently uploading file/batch from
 #      `.git/lfs/sync_progress.log` & `.git/lfs/sync_state.env`, showing exact
-#      completion (% and GB) and time remaining for the current file.
+#      completion (% and GB) and time remaining for the current upload.
 #   3. Scans all remaining queued large files (sorted smallest -> largest) and
 #      shows BOTH individual upload duration AND cumulative completion time
-#      (including the remainder of the current file).
+#      (including the remainder of the current upload).
 #
 # 100% read-only & stateless: safe to Ctrl+C and restart anytime.
 # =============================================================================
@@ -33,7 +33,7 @@ usage() {
 Usage: ./check-sync-progress.sh [options]
 
 Options:
-  -s, --speed <MB/s>       Upload speed in MB/s (e.g. 12 or 8.5). If omitted,
+  -s, --speed <MB/s>       Upload speed in MB/s (e.g. 10 or 19). If omitted,
                            prompts interactively.
   -o, --once               Print report once and exit (no interactive refresh).
   -t, --threshold-mb <MB>  Override large-file cutoff in MB (defaults to active
@@ -158,6 +158,23 @@ read_state_key() {
   fi
 }
 
+is_in_pipe_list() {
+  local needle="$1"
+  local plist="$2"
+  [[ -z "$plist" ]] && return 1
+  local item
+  local OLD_IFS="$IFS"
+  IFS='|'
+  for item in $plist; do
+    if [[ "$item" == "$needle" ]]; then
+      IFS="$OLD_IFS"
+      return 0
+    fi
+  done
+  IFS="$OLD_IFS"
+  return 1
+}
+
 observed_speed_hint() {
   if [[ -f "$PID_FILE" && -f "$STATE_FILE" && -f "$PROGRESS_FILE" ]]; then
     local pid state start_ep
@@ -185,7 +202,7 @@ observed_speed_hint() {
 # Prompt for upload speed if not supplied (or invalid)
 while [[ -z "$SPEED_MBPS" ]] || ! is_valid_speed "$SPEED_MBPS"; do
   if [[ -n "$SPEED_MBPS" ]]; then
-    echo "❌ Invalid speed '$SPEED_MBPS'. Please enter a positive number (e.g. 12 or 8.5)."
+    echo "❌ Invalid speed '$SPEED_MBPS'. Please enter a positive number (e.g. 10 or 19)."
     if [[ "$RUN_ONCE" -eq 1 ]]; then
       exit 1
     fi
@@ -195,7 +212,7 @@ while [[ -z "$SPEED_MBPS" ]] || ! is_valid_speed "$SPEED_MBPS"; do
     read -r -p "Enter current upload speed in MB/s [observed avg ~${HINT_SPEED} MB/s]: " INPUT_SPEED
     SPEED_MBPS="${INPUT_SPEED:-$HINT_SPEED}"
   else
-    read -r -p "Enter current upload speed in MB/s (e.g. 12 or 8.5): " SPEED_MBPS
+    read -r -p "Enter current upload speed in MB/s (e.g. 9.5 or 19): " SPEED_MBPS
   fi
 done
 
@@ -225,38 +242,48 @@ render_report() {
     fi
   fi
 
-  local state="" cur_file="" cur_size=0 cur_idx=0 tot_large=0
+  local state="" cur_file="" batch_files="" cur_size=0 stage_base=0 cur_idx=0 tot_large=0 par_mode=1
   if [[ "$sync_alive" -eq 1 && -f "$STATE_FILE" ]]; then
     state="$(read_state_key "STATE")"
     cur_file="$(read_state_key "CURRENT_FILE")"
+    batch_files="$(read_state_key "BATCH_FILES")"
     cur_size="$(read_state_key "CURRENT_SIZE_BYTES")"
+    stage_base="$(read_state_key "STAGE_BASE_BYTES")"
     cur_idx="$(read_state_key "CURRENT_INDEX")"
     tot_large="$(read_state_key "TOTAL_LARGE")"
+    par_mode="$(read_state_key "PARALLEL")"
+    [[ -z "$batch_files" ]] && batch_files="$cur_file"
     [[ -z "$cur_size" ]] && cur_size=0
+    [[ -z "$stage_base" ]] && stage_base=0
     [[ -z "$cur_idx" ]] && cur_idx=0
     [[ -z "$tot_large" ]] && tot_large=0
+    [[ -z "$par_mode" ]] && par_mode=1
   fi
 
   local cur_done_bytes=0
   local cur_total_bytes="$cur_size"
   local cur_rem_bytes=0
   local cur_rem_sec=0
-  local exclude_working_file=""
+  local exclude_pipe_list=""
 
   echo ""
   echo "================================================================================"
   echo "📊 GitStudio Upload Progress & ETA Report  ($(date '+%a %d %b %Y %H:%M:%S'))"
-  echo "   Assumed Upload Speed: ${SPEED_MBPS} MB/s  (1 MB/s = 1,000,000 B/s, matches Git LFS)"
+  if (( sync_alive == 1 && par_mode > 1 )); then
+    echo "   Assumed Total Upload Speed: ${SPEED_MBPS} MB/s  (Active mode: --parallel ${par_mode})"
+  else
+    echo "   Assumed Upload Speed: ${SPEED_MBPS} MB/s  (1 MB/s = 1,000,000 B/s, matches Git LFS)"
+  fi
   echo "================================================================================"
 
   # ---------------------------------------------------------------------------
-  # SECTION 1: CURRENTLY ACTIVE OR RESUMABLE FILE
+  # SECTION 1: CURRENTLY ACTIVE OR RESUMABLE FILE / BATCH
   # ---------------------------------------------------------------------------
   if [[ "$sync_alive" -eq 1 && -n "$state" && "$state" != "completed" && "$state" != "interrupted" ]]; then
-    exclude_working_file="$cur_file"
+    exclude_pipe_list="$batch_files"
     local idx_label=""
     if (( cur_idx > 0 && tot_large > 0 )); then
-      idx_label=" [File ${cur_idx} of ${tot_large}]"
+      idx_label=" [Up to #${cur_idx} of ${tot_large}]"
     fi
 
     if [[ "$state" == "uploading" ]]; then
@@ -288,11 +315,10 @@ render_report() {
       fi
       if [[ -n "$last_clean" ]]; then
         hashed_b="$(printf "%s\n" "$last_clean" | awk '{split($3, a, "/"); printf "%.0f", a[1]}')"
-        local parsed_htot
-        parsed_htot="$(printf "%s\n" "$last_clean" | awk '{split($3, a, "/"); printf "%.0f", a[2]}')"
-        if (( parsed_htot > 0 )); then
-          hash_tot="$parsed_htot"
-        fi
+      fi
+      local total_hashed=$(( stage_base + hashed_b ))
+      if (( total_hashed > hash_tot )); then
+        total_hashed="$hash_tot"
       fi
       cur_done_bytes=0
       cur_rem_bytes="$cur_total_bytes"
@@ -300,7 +326,7 @@ render_report() {
 
       echo ""
       echo "🟡 PREPARING FOR UPLOAD${idx_label}: $cur_file"
-      echo "   LFS Cache Staging: $(progress_bar "$hashed_b" "$hash_tot") ($(human_size "$hashed_b") / $(human_size "$hash_tot") hashed)"
+      echo "   LFS Cache Staging: $(progress_bar "$total_hashed" "$hash_tot") ($(human_size "$total_hashed") / $(human_size "$hash_tot") hashed)"
       echo "   Upload Complete:   0.00 GB / $(human_size "$cur_total_bytes") (0.0% — upload begins right after staging)"
       echo "   Upload Duration:   $(format_duration "$cur_rem_sec") once upload starts  (Est. finish: $(format_eta_clock "$cur_rem_sec"))"
 
@@ -311,7 +337,7 @@ render_report() {
       echo ""
       echo "🧹 VERIFYING & PRUNING CACHE${idx_label}: $cur_file"
       echo "   Progress:   $(progress_bar "$cur_total_bytes" "$cur_total_bytes")"
-      echo "   Completed:  $(human_size "$cur_total_bytes") / $(human_size "$cur_total_bytes") — freeing local LFS cache before next file"
+      echo "   Completed:  $(human_size "$cur_total_bytes") / $(human_size "$cur_total_bytes") — freeing local LFS cache before next batch"
     fi
 
   else
@@ -324,7 +350,13 @@ render_report() {
       local up_bytes=0 up_label=""
       while IFS= read -r uf; do
         [[ -z "$uf" ]] && continue
-        up_label="$uf"
+        if [[ -z "$up_label" ]]; then
+          up_label="$uf"
+          exclude_pipe_list="$uf"
+        else
+          up_label="${up_label} + $(basename "$uf")"
+          exclude_pipe_list="${exclude_pipe_list}|${uf}"
+        fi
         if [[ -f "$uf" ]]; then
           up_bytes=$(( up_bytes + $(get_file_size "$uf") ))
         fi
@@ -366,8 +398,8 @@ render_report() {
 
   while IFS= read -r -d '' filepath; do
     [[ -z "$filepath" ]] && continue
-    # Do not double-count the file already displayed in Section 1
-    if [[ -n "$exclude_working_file" && "$filepath" == "$exclude_working_file" ]]; then
+    # Do not double-count any file already displayed in Section 1
+    if is_in_pipe_list "$filepath" "$exclude_pipe_list"; then
       continue
     fi
     if [[ ! -e "$filepath" ]]; then

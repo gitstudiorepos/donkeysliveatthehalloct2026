@@ -10,8 +10,9 @@
 #     1. Recovers automatically from any interrupted previous run (pushes any
 #        unpushed commit, resets half-staged index, and prunes stale LFS cache).
 #     2. Batches small files (< threshold, default 100 MB) in one commit/push.
-#     3. Adds, commits, pushes, and force-prunes large files (>= threshold)
-#        ONE BY ONE in ascending size order (smallest -> largest), verifying
+#     3. Processes large files (>= threshold) in ascending size order (smallest
+#        -> largest), staging/committing/pushing 1 at a time by default (or N
+#        in parallel via `--parallel N` when free SSD space permits), verifying
 #        each copy on the GitStudio LFS remote before freeing local cache.
 #
 # Safe to cancel (Ctrl+C) anytime: simply run `./sync-large-files.sh` again
@@ -22,6 +23,10 @@
 # =============================================================================
 set -euo pipefail
 
+# Disable Go HTTP/2 client in git-lfs so single-stream uploads use HTTP/1.1
+# with full OS TCP window scaling instead of 16 KiB HTTP/2 flow-control frames
+export GODEBUG="${GODEBUG:-http2client=0}"
+
 # Always run from the repository root containing this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
@@ -30,6 +35,7 @@ cd "$SCRIPT_DIR"
 DRY_RUN=0
 ASSUME_YES=0
 THRESHOLD_MB=100
+PARALLEL=1
 SAFETY_BUFFER_BYTES=5000000000 # 5 GB safety margin on drive free space
 
 usage() {
@@ -37,13 +43,16 @@ usage() {
 Usage: ./sync-large-files.sh [options]
 
 Options:
+  -p, --parallel <N>       Max large files to stage & upload in parallel per
+                           batch (default: 1; use 2 to double overseas upload
+                           throughput when drive free space permits).
   -n, --dry-run            Preview recovery state, small-file batch, and sorted
                            large-file queue without modifying anything.
   -y, --yes                Non-interactive mode (no confirmation prompt; ideal
                            for AI agents or unattended overnight runs).
   -t, --threshold-mb <MB>  Size cutoff in MB (1 MB = 1,000,000 bytes). Files
-                           below this batch together; files >= this sync one by
-                           one smallest-first. (Default: 100)
+                           below this batch together; files >= this sync in
+                           smallest-first order. (Default: 100)
   -h, --help               Show this help message.
 EOF
 }
@@ -51,6 +60,14 @@ EOF
 ORIG_ARGS=("$@")
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    -p|--parallel)
+      if [[ $# -lt 2 || ! "$2" =~ ^[0-9]+$ || "$2" -le 0 ]]; then
+        echo "❌ Error: --parallel requires a positive integer (e.g. 1 or 2)." >&2
+        exit 1
+      fi
+      PARALLEL="$2"
+      shift 2
+      ;;
     -n|--dry-run)
       DRY_RUN=1
       shift
@@ -148,12 +165,17 @@ write_state() {
   local cur_idx="${4:-0}"
   local tot_large="${5:-0}"
   local started="${6:-$(date +%s)}"
+  local batch_files="${7:-$cur_file}"
+  local stage_base="${8:-0}"
   local tmp_state="$STATE_FILE.tmp.$$"
   {
     printf "STATE=%s\n" "$phase"
     printf "SYNC_PID=%s\n" "$$"
+    printf "PARALLEL=%s\n" "$PARALLEL"
     printf "CURRENT_FILE=%s\n" "$cur_file"
+    printf "BATCH_FILES=%s\n" "$batch_files"
     printf "CURRENT_SIZE_BYTES=%s\n" "$cur_size"
+    printf "STAGE_BASE_BYTES=%s\n" "$stage_base"
     printf "CURRENT_INDEX=%s\n" "$cur_idx"
     printf "TOTAL_LARGE=%s\n" "$tot_large"
     printf "PHASE_START_EPOCH=%s\n" "$started"
@@ -297,25 +319,43 @@ fi
 AHEAD_COUNT="$(git --no-optional-locks rev-list --count origin/main..HEAD 2>/dev/null || echo 0)"
 if (( AHEAD_COUNT > 0 )); then
   UNPUSHED_DESC="$(git --no-optional-locks log -1 --format='%s' HEAD)"
-  # Estimate bytes of unpushed files still on disk for progress display
-  UNPUSHED_FILE="$(git --no-optional-locks -c core.quotePath=false diff-tree --no-commit-id --name-only -r origin/main HEAD | tail -n 1 || true)"
+  UNPUSHED_LIST="$TMP_WORK/unpushed_files.txt"
+  git --no-optional-locks -c core.quotePath=false diff-tree --no-commit-id --name-only -r origin/main HEAD > "$UNPUSHED_LIST" || true
+
   UNPUSHED_BYTES=0
-  if [[ -n "$UNPUSHED_FILE" && -f "$UNPUSHED_FILE" ]]; then
-    UNPUSHED_BYTES="$(get_file_size "$UNPUSHED_FILE")"
-  fi
+  UNPUSHED_FILE_COUNT=0
+  UNPUSHED_LABEL=""
+  UNPUSHED_PIPE=""
+  while IFS= read -r uf; do
+    [[ -z "$uf" ]] && continue
+    UNPUSHED_FILE_COUNT=$(( UNPUSHED_FILE_COUNT + 1 ))
+    if [[ -z "$UNPUSHED_LABEL" ]]; then
+      UNPUSHED_LABEL="$uf"
+      UNPUSHED_PIPE="$uf"
+    else
+      UNPUSHED_LABEL="${UNPUSHED_LABEL} + $(basename "$uf")"
+      UNPUSHED_PIPE="${UNPUSHED_PIPE}|${uf}"
+    fi
+    if [[ -f "$uf" ]]; then
+      UNPUSHED_BYTES=$(( UNPUSHED_BYTES + $(get_file_size "$uf") ))
+    fi
+  done < "$UNPUSHED_LIST"
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    echo "🔁 [Dry Run] Recovery needed: $AHEAD_COUNT unpushed local commit(s) detected:"
+    echo "🔁 [Dry Run] Recovery needed: $AHEAD_COUNT unpushed local commit(s) (${UNPUSHED_FILE_COUNT} file(s), $(human_size "$UNPUSHED_BYTES")):"
     git --no-optional-locks log --oneline origin/main..HEAD | sed 's/^/     /'
-    echo "   Would finish pushing to origin/main and force-prune LFS cache first."
+    echo "   Would finish pushing to origin/main (concurrenttransfers=$PARALLEL) and force-prune LFS cache first."
   else
     echo ""
     echo "🔁 Resuming interrupted push ($AHEAD_COUNT unpushed commit(s): \"$UNPUSHED_DESC\")..."
+    if (( PARALLEL > 1 && UNPUSHED_FILE_COUNT < PARALLEL )); then
+      echo "   ℹ️  Finishing ${UNPUSHED_FILE_COUNT} already-committed file first; remaining files will upload ${PARALLEL} at a time."
+    fi
     echo "   💡 Tip: Run ./check-sync-progress.sh in another window for live % & ETAs."
     : > "$PROGRESS_FILE"
-    write_state "uploading" "${UNPUSHED_FILE:-$UNPUSHED_DESC}" "$UNPUSHED_BYTES" 0 0 "$(date +%s)"
-    GIT_LFS_PROGRESS="$PROGRESS_FILE" git push origin main
-    write_state "pruning" "${UNPUSHED_FILE:-$UNPUSHED_DESC}" "$UNPUSHED_BYTES" 0 0 "$(date +%s)"
+    write_state "uploading" "${UNPUSHED_LABEL:-$UNPUSHED_DESC}" "$UNPUSHED_BYTES" 0 0 "$(date +%s)" "$UNPUSHED_PIPE" 0
+    GIT_LFS_PROGRESS="$PROGRESS_FILE" git -c lfs.concurrenttransfers="$PARALLEL" push origin main
+    write_state "pruning" "${UNPUSHED_LABEL:-$UNPUSHED_DESC}" "$UNPUSHED_BYTES" 0 0 "$(date +%s)" "$UNPUSHED_PIPE" 0
     echo "🧹 Verifying remote copy & reclaiming local LFS cache..."
     git lfs prune --force --verify-remote
     : > "$PROGRESS_FILE"
@@ -399,15 +439,16 @@ FREE_BYTES_NOW="$(get_free_bytes)"
 
 echo ""
 echo "💾 Drive Free Space:    $(human_size "$FREE_BYTES_NOW")"
+echo "⚡ Parallel Streams:    ${PARALLEL} file(s) per batch (HTTP/1.1 enabled)"
 echo "📏 Large-File Cutoff:   ${THRESHOLD_MB} MB ($(human_size "$THRESHOLD_BYTES"))"
 echo "📦 Phase 1 (Batch):     ${SMALL_COUNT} small/deleted file(s) ($(human_size "$SMALL_TOTAL_BYTES"))"
-echo "🎞️  Phase 2 (1-by-1):    ${LARGE_COUNT} large file(s) ($(human_size "$LARGE_TOTAL_BYTES") total)"
+echo "🎞️  Phase 2 (Queue):     ${LARGE_COUNT} large file(s) ($(human_size "$LARGE_TOTAL_BYTES") total)"
 
 if (( SMALL_COUNT == 0 && LARGE_COUNT == 0 )); then
   echo ""
   echo "✅ Everything is already synced with origin/main! Nothing to upload."
   if [[ "$DRY_RUN" -eq 0 ]]; then
-    write_state "completed" "" 0 0 0 "$(date +%s)"
+    write_state "completed" "" 0 0 0 "$(date +%s)" "" 0
   fi
   COMPLETED_NORMALLY=1
   exit 0
@@ -433,12 +474,21 @@ if (( SMALL_COUNT > 0 )); then
   fi
 fi
 
+# Load sorted large files into indexed bash 3.2 arrays
+LARGE_SIZES=()
+LARGE_FILES=()
 MAX_SINGLE_LARGE=0
 if (( LARGE_COUNT > 0 )); then
   echo ""
-  echo "--- Phase 2: Large Files Queue (smallest -> largest, 1-by-1 + LFS prune) ---"
+  if (( PARALLEL > 1 )); then
+    echo "--- Phase 2: Large Files Queue (smallest -> largest, up to ${PARALLEL} in parallel + LFS prune) ---"
+  else
+    echo "--- Phase 2: Large Files Queue (smallest -> largest, 1-by-1 + LFS prune) ---"
+  fi
   IDX=0
   while IFS=$'\t' read -r lsize lfile; do
+    LARGE_SIZES+=("$lsize")
+    LARGE_FILES+=("$lfile")
     IDX=$(( IDX + 1 ))
     if (( lsize > MAX_SINGLE_LARGE )); then
       MAX_SINGLE_LARGE="$lsize"
@@ -449,7 +499,10 @@ if (( LARGE_COUNT > 0 )); then
   REQUIRED_PEAK=$(( MAX_SINGLE_LARGE + SAFETY_BUFFER_BYTES ))
   echo ""
   if (( FREE_BYTES_NOW >= REQUIRED_PEAK )); then
-    echo "✅ Cache Space Check:   Peak single-file cache need is $(human_size "$MAX_SINGLE_LARGE") (+ 5 GB buffer) — fits within $(human_size "$FREE_BYTES_NOW") free."
+    echo "✅ Cache Space Check:   Largest single file is $(human_size "$MAX_SINGLE_LARGE") (+ 5 GB buffer) — fits within $(human_size "$FREE_BYTES_NOW") free."
+    if (( PARALLEL > 1 )); then
+      echo "   (Batches of ${PARALLEL} automatically fall back to smaller batches if free space is tight.)"
+    fi
   else
     echo "⚠️  Cache Space Warning: Largest file needs $(human_size "$MAX_SINGLE_LARGE") (+ 5 GB buffer), free space is $(human_size "$FREE_BYTES_NOW")."
   fi
@@ -517,16 +570,16 @@ if (( SMALL_COUNT > 0 )); then
   echo "========================================================================"
   PHASE1_START="$(date +%s)"
   : > "$PROGRESS_FILE"
-  write_state "staging" "Small files batch (${SMALL_COUNT} files)" "$SMALL_TOTAL_BYTES" 0 "$LARGE_COUNT" "$PHASE1_START"
+  write_state "staging" "Small files batch (${SMALL_COUNT} files)" "$SMALL_TOTAL_BYTES" 0 "$LARGE_COUNT" "$PHASE1_START" "" 0
 
   GIT_LFS_PROGRESS="$PROGRESS_FILE" xargs -0 git add -- < "$SMALL_LIST"
 
   if ! git diff --cached --quiet; then
     git commit -m "Sync ${SMALL_COUNT} small project/edit file(s) ($(human_size "$SMALL_TOTAL_BYTES"))"
     : > "$PROGRESS_FILE"
-    write_state "uploading" "Small files batch (${SMALL_COUNT} files)" "$SMALL_TOTAL_BYTES" 0 "$LARGE_COUNT" "$(date +%s)"
-    GIT_LFS_PROGRESS="$PROGRESS_FILE" git push origin main
-    write_state "pruning" "Small files batch (${SMALL_COUNT} files)" "$SMALL_TOTAL_BYTES" 0 "$LARGE_COUNT" "$(date +%s)"
+    write_state "uploading" "Small files batch (${SMALL_COUNT} files)" "$SMALL_TOTAL_BYTES" 0 "$LARGE_COUNT" "$(date +%s)" "" 0
+    GIT_LFS_PROGRESS="$PROGRESS_FILE" git -c lfs.concurrenttransfers="$PARALLEL" push origin main
+    write_state "pruning" "Small files batch (${SMALL_COUNT} files)" "$SMALL_TOTAL_BYTES" 0 "$LARGE_COUNT" "$(date +%s)" "" 0
     git lfs prune --force --verify-remote
     : > "$PROGRESS_FILE"
     PHASE1_ELAPSED=$(( $(date +%s) - PHASE1_START ))
@@ -537,64 +590,113 @@ if (( SMALL_COUNT > 0 )); then
 fi
 
 # =============================================================================
-# EXECUTE PHASE 2: LARGE FILES ONE-BY-ONE (SMALLEST FIRST)
+# EXECUTE PHASE 2: LARGE FILES (1-BY-1 OR UP TO N IN PARALLEL, SMALLEST FIRST)
 # =============================================================================
 if (( LARGE_COUNT > 0 )); then
-  IDX=0
-  while IFS=$'\t' read -r lsize lfile; do
-    IDX=$(( IDX + 1 ))
-    FILE_START="$(date +%s)"
+  POS=0
+  while (( POS < LARGE_COUNT )); do
+    BATCH_START_EPOCH="$(date +%s)"
     FREE_NOW="$(get_free_bytes)"
-    NEEDED_NOW=$(( lsize + SAFETY_BUFFER_BYTES ))
 
-    echo ""
-    echo "========================================================================"
-    echo "🎬 [File ${IDX}/${LARGE_COUNT}] $lfile"
-    echo "   Size: $(human_size "$lsize")  |  Drive Free: $(human_size "$FREE_NOW")  |  Started: $(date '+%H:%M:%S')"
-    echo "========================================================================"
+    FIRST_FILE="${LARGE_FILES[$POS]}"
+    FIRST_SIZE="${LARGE_SIZES[$POS]}"
+    NEEDED_FIRST=$(( FIRST_SIZE + SAFETY_BUFFER_BYTES ))
 
-    if (( FREE_NOW < NEEDED_NOW )); then
-      echo "❌ Insufficient free disk space on drive to safely cache '$lfile' in .git/lfs/objects." >&2
-      echo "   Required (file + 5 GB buffer): $(human_size "$NEEDED_NOW")" >&2
+    if (( FREE_NOW < NEEDED_FIRST )); then
+      echo ""
+      echo "❌ Insufficient free disk space on drive to safely cache '$FIRST_FILE' in .git/lfs/objects." >&2
+      echo "   Required (file + 5 GB buffer): $(human_size "$NEEDED_FIRST")" >&2
       echo "   Available right now:           $(human_size "$FREE_NOW")" >&2
       exit 1
     fi
 
-    # 1. Ensure Git LFS tracks this file before git add
-    ensure_lfs_tracked "$lfile"
+    # Build batch up to $PARALLEL files that fit together in FREE_NOW
+    BATCH_IDX_START=$(( POS + 1 ))
+    BATCH_PATHS=("$FIRST_FILE")
+    BATCH_SIZES=("$FIRST_SIZE")
+    BATCH_BYTES="$FIRST_SIZE"
+    BATCH_LABEL="$FIRST_FILE"
+    BATCH_PIPE="$FIRST_FILE"
+    BATCH_COMMIT_NAMES="$(basename "$FIRST_FILE")"
+    POS=$(( POS + 1 ))
 
-    # 2. Stage (copies/hashes into .git/lfs/objects)
-    echo "   [1/4] Staging into Git LFS cache (hashing $(human_size "$lsize"))..."
-    : > "$PROGRESS_FILE"
-    write_state "staging" "$lfile" "$lsize" "$IDX" "$LARGE_COUNT" "$(date +%s)"
-    GIT_LFS_PROGRESS="$PROGRESS_FILE" git add -- "$lfile"
+    while (( ${#BATCH_PATHS[@]} < PARALLEL && POS < LARGE_COUNT )); do
+      NEXT_FILE="${LARGE_FILES[$POS]}"
+      NEXT_SIZE="${LARGE_SIZES[$POS]}"
+      if (( BATCH_BYTES + NEXT_SIZE + SAFETY_BUFFER_BYTES <= FREE_NOW )); then
+        BATCH_PATHS+=("$NEXT_FILE")
+        BATCH_SIZES+=("$NEXT_SIZE")
+        BATCH_BYTES=$(( BATCH_BYTES + NEXT_SIZE ))
+        BATCH_LABEL="${BATCH_LABEL} + $(basename "$NEXT_FILE")"
+        BATCH_PIPE="${BATCH_PIPE}|${NEXT_FILE}"
+        BATCH_COMMIT_NAMES="${BATCH_COMMIT_NAMES}, $(basename "$NEXT_FILE")"
+        POS=$(( POS + 1 ))
+      else
+        echo ""
+        echo "ℹ️  Drive free space ($(human_size "$FREE_NOW")) fits ${#BATCH_PATHS[@]} file(s) safely this round — throttling batch size."
+        break
+      fi
+    done
+
+    BATCH_IDX_END="$POS"
+    BATCH_LEN="${#BATCH_PATHS[@]}"
+
+    echo ""
+    echo "========================================================================"
+    if (( BATCH_LEN == 1 )); then
+      echo "🎬 [File ${BATCH_IDX_START}/${LARGE_COUNT}] $FIRST_FILE"
+    else
+      echo "🎬 [Files ${BATCH_IDX_START}-${BATCH_IDX_END}/${LARGE_COUNT} (${BATCH_LEN} parallel)] $BATCH_LABEL"
+    fi
+    echo "   Batch Size: $(human_size "$BATCH_BYTES")  |  Drive Free: $(human_size "$FREE_NOW")  |  Started: $(date '+%H:%M:%S')"
+    echo "========================================================================"
+
+    # 1. Ensure Git LFS tracks every file in this batch before staging
+    for bf in "${BATCH_PATHS[@]}"; do
+      ensure_lfs_tracked "$bf"
+    done
+
+    # 2. Stage each file in the batch into .git/lfs/objects
+    echo "   [1/4] Staging ${BATCH_LEN} file(s) into Git LFS cache (hashing $(human_size "$BATCH_BYTES"))..."
+    STAGE_BASE=0
+    for (( bi = 0; bi < BATCH_LEN; bi++ )); do
+      bf="${BATCH_PATHS[$bi]}"
+      bs="${BATCH_SIZES[$bi]}"
+      if (( BATCH_LEN > 1 )); then
+        echo "         • Hashing ($(( bi + 1 ))/${BATCH_LEN}): $(basename "$bf") ($(human_size "$bs"))..."
+      fi
+      : > "$PROGRESS_FILE"
+      write_state "staging" "$BATCH_LABEL" "$BATCH_BYTES" "$BATCH_IDX_END" "$LARGE_COUNT" "$(date +%s)" "$BATCH_PIPE" "$STAGE_BASE"
+      GIT_LFS_PROGRESS="$PROGRESS_FILE" git add -- "$bf"
+      STAGE_BASE=$(( STAGE_BASE + bs ))
+    done
 
     # 3. Commit
-    echo "   [2/4] Committing LFS pointer..."
-    write_state "committing" "$lfile" "$lsize" "$IDX" "$LARGE_COUNT" "$(date +%s)"
+    echo "   [2/4] Committing LFS pointer(s)..."
+    write_state "committing" "$BATCH_LABEL" "$BATCH_BYTES" "$BATCH_IDX_END" "$LARGE_COUNT" "$(date +%s)" "$BATCH_PIPE" "$BATCH_BYTES"
     if ! git diff --cached --quiet; then
-      git commit -m "Add $(basename "$lfile") ($(human_size "$lsize"))"
+      git commit -m "Add ${BATCH_COMMIT_NAMES} ($(human_size "$BATCH_BYTES"))"
     fi
 
-    # 4. Push (live Git LFS progress line shown here + streamed to PROGRESS_FILE)
-    echo "   [3/4] Uploading to GitStudio LFS Vault (live progress below)..."
+    # 4. Push (concurrenttransfers=$BATCH_LEN opens parallel HTTP/1.1 streams)
+    echo "   [3/4] Uploading to GitStudio LFS Vault (streams=${BATCH_LEN}, live progress below)..."
     : > "$PROGRESS_FILE"
-    write_state "uploading" "$lfile" "$lsize" "$IDX" "$LARGE_COUNT" "$(date +%s)"
-    GIT_LFS_PROGRESS="$PROGRESS_FILE" git push origin main
+    write_state "uploading" "$BATCH_LABEL" "$BATCH_BYTES" "$BATCH_IDX_END" "$LARGE_COUNT" "$(date +%s)" "$BATCH_PIPE" 0
+    GIT_LFS_PROGRESS="$PROGRESS_FILE" git -c lfs.concurrenttransfers="$BATCH_LEN" push origin main
 
-    # 5. Verify remote copy & force-prune local .git/lfs/objects duplicate
+    # 5. Verify remote copy & force-prune local .git/lfs/objects duplicates
     echo "   [4/4] Verifying remote vault copy & pruning local LFS cache..."
-    write_state "pruning" "$lfile" "$lsize" "$IDX" "$LARGE_COUNT" "$(date +%s)"
+    write_state "pruning" "$BATCH_LABEL" "$BATCH_BYTES" "$BATCH_IDX_END" "$LARGE_COUNT" "$(date +%s)" "$BATCH_PIPE" 0
     git lfs prune --force --verify-remote
     : > "$PROGRESS_FILE"
 
-    FILE_ELAPSED=$(( $(date +%s) - FILE_START ))
+    BATCH_ELAPSED=$(( $(date +%s) - BATCH_START_EPOCH ))
     FREE_AFTER="$(get_free_bytes)"
-    echo "   ✅ Finished [$IDX/$LARGE_COUNT] $(basename "$lfile") in $(format_duration "$FILE_ELAPSED") (Drive free: $(human_size "$FREE_AFTER"))"
-  done < "$LARGE_SORTED"
+    echo "   ✅ Finished [${BATCH_IDX_START}-${BATCH_IDX_END}/${LARGE_COUNT}] ${BATCH_COMMIT_NAMES} in $(format_duration "$BATCH_ELAPSED") (Drive free: $(human_size "$FREE_AFTER"))"
+  done
 fi
 
-write_state "completed" "" 0 "$LARGE_COUNT" "$LARGE_COUNT" "$(date +%s)"
+write_state "completed" "" 0 "$LARGE_COUNT" "$LARGE_COUNT" "$(date +%s)" "" 0
 COMPLETED_NORMALLY=1
 
 echo ""
